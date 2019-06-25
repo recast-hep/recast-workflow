@@ -1,0 +1,22 @@
+language: python
+python:
+  - "3.7"
+dist: bionic
+addons:
+  apt:
+    packages:
+      - autoconf
+      - libtool
+      - graphviz
+      - python3.7-dev
+install:
+ - pip install pipenv pytest
+ - pipenv install
+script: 
+  - . scripts/setup.sh
+  - pytest
+cache:
+  directories:
+    - .pipenv
+env:
+  - WORKON_HOME=.pipenv/venvs PIP_CACHE_DIR=.pipenv/pipcache

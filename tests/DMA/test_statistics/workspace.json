@@ -1,0 +1,62 @@
+{
+    "channels": [
+        { "name": "met_mono",
+          "samples": [
+            { "name": "signal",
+              "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+              "modifiers": [ { "name": "mu", "type": "normfactor", "data": null} ]
+            },
+            { "name": "background",
+              "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+              "modifiers": [ {"name": "uncorr_bkguncrt", "type": "shapesys", "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]} ]
+            }
+          ]
+        },
+        { "name": "met_vbf",
+            "samples": [
+              { "name": "signal",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ { "name": "mu", "type": "normfactor", "data": null} ]
+              },
+              { "name": "background",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ {"name": "uncorr_bkguncrt", "type": "shapesys", "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]} ]
+              }
+            ]
+          },
+          { "name": "mjj_vbf",
+            "samples": [
+              { "name": "signal",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ { "name": "mu", "type": "normfactor", "data": null} ]
+              },
+              { "name": "background",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ {"name": "uncorr_bkguncrt", "type": "shapesys", "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]} ]
+              }
+            ]
+          },
+          { "name": "dphijj_vbf",
+            "samples": [
+              { "name": "signal",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ { "name": "mu", "type": "normfactor", "data": null} ]
+              },
+              { "name": "background",
+                "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0],
+                "modifiers": [ {"name": "uncorr_bkguncrt", "type": "shapesys", "data": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0]} ]
+              }
+            ]
+          }
+    ],
+    "observations": [
+        { "name": "met_mono", "data": [7.71, 8.12, 7.21, 6.74, 6.12, 6.74, 4.40] },
+        { "name": "met_vbf", "data": [7.50, 8.06, 7.21, 6.13, 5.32, 7.61] },
+        { "name": "mjj_vbf", "data": [7.86, 7.15, 6.93, 7.05, 7.46] },
+        { "name": "dphijj_vbf", "data": [6.35, 6.98, 7.91, 7.11, 8.21, 7.29] }
+    ],
+    "measurements": [
+        { "name": "Measurement", "config": {"poi": "mu", "parameters": []} }
+    ],
+    "version": "1.0.0"
+}

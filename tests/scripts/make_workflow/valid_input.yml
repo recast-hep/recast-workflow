@@ -1,0 +1,3 @@
+workflows:
+  - {step: generation, name: madgraph_pythia, inputs: {'n_events': 10, proc_card: path/to/proc_card}, settings: {madgraph_version: 2.6.6, pythia_version: 8243}}
+  - {step: selection, name: rivet, inputs: {}}

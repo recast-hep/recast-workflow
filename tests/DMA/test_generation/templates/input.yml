@@ -1,0 +1,5 @@
+n_events: 5000
+param_card: "$PARAM_CARD"
+run_card: "default"
+proc_card: "proc_card_LO.dat"
+ufotar: "DMsimp_s_spin1.tar"

@@ -1,0 +1,10 @@
+stages:
+  - name: generation
+    dependencies: ['init']
+    scheduler:
+      scheduler_type: 'singlestep-stage'
+      parameters:
+        outputhepmc: '{workdir}/output.hepmc'
+      workflow: {$ref: '$GENERATION'}
+  - name: 
+    

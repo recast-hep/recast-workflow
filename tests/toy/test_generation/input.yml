@@ -1,0 +1,5 @@
+n_events: 10
+param_card: "default"
+run_card: "default"
+proc_card: "proc_card.dat"
+ufotar: "default"

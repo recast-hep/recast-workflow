@@ -1,0 +1,7 @@
+
+set low_mem_multicore_nlo_generation False
+import model DMsimp_s_spin1 -modelname
+
+generate p p > xd xd~ j [QCD]
+
+output -f

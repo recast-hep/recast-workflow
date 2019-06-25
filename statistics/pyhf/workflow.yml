@@ -1,0 +1,10 @@
+stages:
+  - name: pyhf
+    dependencies: ['init']
+    scheduler:
+      scheduler_type: 'singlestep-stage'
+      parameters:
+        workspace: {step: init, output: workspace}
+        yoda: {step: init, output: yoda}
+        outputcls: '{workdir}/cls.json'
+      step: {$ref: '~/recast-workflow/statistics/pyhf/step.yml'}

@@ -1,0 +1,8 @@
+*.lhe
+*.hepmc
+workdir*/
+mMed*/
+*.log
+__pycache__
+*.code-workspace
+.vscode
