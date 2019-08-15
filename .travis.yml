@@ -10,7 +10,7 @@ addons:
       - graphviz
       - python3.7-dev
 install:
- - pip install pipenv pytest
+ - pip install pipenv pytest pytest-cov
  - pipenv install
 script: 
   - . scripts/setup.sh
