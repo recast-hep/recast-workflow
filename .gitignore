@@ -6,3 +6,4 @@ mMed*/
 __pycache__
 *.code-workspace
 .vscode
+*.pyc
