@@ -14,7 +14,8 @@ install:
  - pipenv install
 script: 
   - . scripts/setup.sh
-  - pytest
+  - pytest --cov=./
+  - codecov
 cache:
   directories:
     - .pipenv

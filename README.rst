@@ -1,7 +1,7 @@
 Recast Workflow
 ===============
 
-|build-status| |docs|
+|build-status| |docs| |coverage|
 
 Purpose
 -------
@@ -13,5 +13,12 @@ Implements workflows for the recast project.
     :target: https://travis-ci.org/recast-hep/recast-workflow
     
 .. |docs| image:: https://readthedocs.org/projects/recast-workflow/badge/?version=latest
+    :alt: documentation status
+    :scale: 100%
     :target: https://recast-workflow.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
+
+
+.. |coverage| image:: https://codecov.io/gh/recast-hep/recast-workflow/branch/master/graph/badge.svg
+    :alt: code coverage
+    :scale: 100%
+    :target: https://codecov.io/gh/recast-hep/recast-workflow
