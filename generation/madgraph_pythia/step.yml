@@ -11,5 +11,5 @@ publisher:
     hepmcfile: outputhepmc
 environment:
   environment_type: 'docker-encapsulated'
-  image: recast/madgraph-pythia
-  imagetag: 2.6.6
+  image: recast/madgraph
+  imagetag: {madgraph_tag}

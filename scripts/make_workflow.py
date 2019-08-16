@@ -14,7 +14,7 @@ def make_workflow_from_yaml(yaml_path, output_path=None):
 
 def make_workflow(subworkflows, output_path=None):
     workflow = {'stages': []}
-    for i, (step, name, inputs) in enumerate(subworkflows):
+    for i, (step, name, inputs, environment_settings) in enumerate(subworkflows):
         # Validate the inputs.
         missing_inputs = validation.get_missing_inputs(step, name, inputs)
         if len(missing_inputs) > 0:
@@ -26,9 +26,10 @@ def make_workflow(subworkflows, output_path=None):
                 f'subworkflow {name} for step {step} has invalid inputs. The following inputs are invalid: {invalid_inputs}')
 
         # Create parameters dict from inputs + interface.
-        workflow_path = utils.get_workflow_path(step, name)
+        workflow_path = utils.get_workflow_path(step, name, environment_settings)
         description = utils.get_description(step, name)
-        parameters = {k: {'step': 'init', 'output': k} for k in inputs}
+        translated_inputs = utils.get_translated_inputs(step, name, inputs)
+        parameters = {k: {'step': 'init', 'output': k} for k in translated_inputs}
         interfaces = description['interfaces']
         if 'input' in interfaces:
             interface = utils.get_interface(interfaces['input'])
