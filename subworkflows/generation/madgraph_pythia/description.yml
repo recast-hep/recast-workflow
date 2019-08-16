@@ -1,0 +1,14 @@
+description: 'Generate particle-level events using MadGraph 5 and Pythia 8.'
+settings:
+  - {name: madgraph_version, default: 2.6.6}
+  - {name: pythia_version, default: 8243}
+inputs:
+  - {name: n_events, description: 'The number of events that should be generated.'}
+  - {name: param_card, description: 'The parameter card.', optional: true}
+  - {name: run_card, description: 'The run card.', optional: true}
+  - {name: proc_card, description: 'The process card.'}
+  - {name: ufotar, description: 'A tar of the UFO model.', optional: true}
+  - {name: pythia_card, description: 'Pythia settings.', optional: true}
+interfaces:
+  output: hepmc
+  

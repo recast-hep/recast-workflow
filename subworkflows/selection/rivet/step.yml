@@ -1,0 +1,13 @@
+process:
+  process_type: interpolated-script-cmd
+  script: |
+    rivet -a {analysis} -H analysis.yoda {hepmc}
+    python yoda2json.py analysis.yoda {outputjson}
+publisher:
+  publisher_type: 'interpolated-pub'
+  publish:
+    jsonfile: '{outputjson}'
+environment:
+  environment_type: 'docker-encapsulated'
+  image: recast/rivet
+  imagetag: '2.7.2'
