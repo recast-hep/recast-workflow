@@ -1,9 +1,0 @@
-description: 'Generate particle-level events using MadGraph 5 and Pythia 8.'
-settings:
-  - {name: rivet_version, default: latest}
-inputs:
-  - {name: analysis, description: 'The rivet analysis that should be used.'}
-interfaces:
-  input: hepmc
-  output: json
-  

@@ -3,7 +3,11 @@ import argparse
 import yaml
 
 from common import utils, validation
+import tempfile
+import definitions
 
+def make_workflow_dir():
+    return tempfile.mkdtemp(suffix='workflow_', dir=definitions.WORKFLOWS_DIR)
 
 def make_workflow_from_yaml(yaml_path, output_path=None):
     with open(yaml_path, 'r') as fd:
@@ -50,7 +54,7 @@ def make_workflow(subworkflows, output_path=None):
     if output_path:
         with open('output_path', 'w+') as fd:
             yaml.dump(workflow, fd)
-    return workflow
+    return workflow, toplevel
 
 def main():
     parser = argparse.ArgumentParser(
