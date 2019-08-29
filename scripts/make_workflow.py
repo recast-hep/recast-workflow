@@ -13,12 +13,14 @@ import definitions
 from common import utils, validation
 from images import build_utils
 
+from typing import List, Tuple, Dict
+
 
 def make_workflow_dir():
     return tempfile.mkdtemp(suffix='workflow-', dir=definitions.WORKFLOWS_DIR)
 
 
-def make_subworkflow(step: str, subworkflow_name: str, environment_settings: dict, toplevel_path: Path) -> Path:
+def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dict[str, str], toplevel_path: Path) -> Path:
     """Creates a directory in toplevel_path that contains the given subworkflow with the specified environment settings.
 
     If make.py exists in the corresponding subworkflow directory, it is run with the assumption that it will handle making the subworkflow. 
@@ -112,17 +114,16 @@ def build_subworkflow(step: str, name: str, environment_settings: dict):
             f'The following environment settings were provided but were unused in default image building: {unused_environment_settings}. However, a custom build.py was run for one or more images, so this may be a false alarm.')
 
 
-def make_workflow_from_yaml(yaml_path, output_path=None):
-    raise NotImplementedError()
-    with open(yaml_path, 'r') as fd:
-        yaml_text = yaml.full_load(fd)
+def make_workflow_from_yaml(yaml_path: Path):
+    with yaml_path.open() as fd:
+        yaml_text = yaml.safe_load(fd)
     
     subworkflows = []
 
     return make_workflow(subworkflows)
 
 
-def make_workflow(subworkflows: list) -> Path:
+def make_workflow(subworkflows: List[Tuple[str, str, Dict[str, str], Dict[str, str]]]) -> Path:
     """Creates a directory that contains a workflow specified by the given subworkflows list. 
 
     Args:
@@ -147,7 +148,7 @@ def make_workflow(subworkflows: list) -> Path:
         # Validate the environment settings.
         # TODO
 
-        # Build the image.
+        # Build the image if necessary.
         build_subworkflow(step, name, environment_settings)
 
         # Create parameters dict from inputs + interface.
@@ -181,9 +182,9 @@ def main():
     parser = argparse.ArgumentParser(
         description='Make a complete workflow from sub-workflows.')
     parser.add_argument('make_workflow_yaml')
-    parser.add_argument('output_path')
     args = parser.parse_args()
-    make_workflow_from_yaml(args.make_workflow_yaml, args.output_path)
+    workflow_dir = make_workflow_from_yaml(args.make_workflow_yaml)
+    print(f'Workflow in {workflow_dir}.')
 
 
 if __name__ == '__main__':

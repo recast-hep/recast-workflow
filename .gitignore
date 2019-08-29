@@ -10,3 +10,4 @@ __pycache__
 _build/
 coverage.xml
 .coverage
+.mypy_cache

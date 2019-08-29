@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+from typing import Dict, Optional
 
 import requests
 import yaml
@@ -35,7 +36,8 @@ def docker_image_exists(image_id: str) -> bool:
     """Check if a docker image with the given image_id exists on ducker hub using v2 of the docker hub api."""
 
     if ':' not in image_id:
-        raise ValueError(f'Invalid image_id specified: {image_id}. A image_id should be of the format: "{{name}}:{{tag}}"')
+        raise ValueError(
+            f'Invalid image_id specified: {image_id}. A image_id should be of the format: "{{name}}:{{tag}}"')
     name, tag = image_id.split(':')
     token = get_docker_token()
     headers = {
@@ -52,7 +54,7 @@ def docker_image_exists(image_id: str) -> bool:
     return tag in tags
 
 
-def docker_build(image_id: str, dir_path: Path, build_args: dict):
+def docker_build(image_id: str, dir_path: Path, build_args: Optional[Dict[str, str]] = None):
     """Builds a docker image.
 
     Tries to build using the cache first. If that fails, then it tries again without the cache."""
@@ -75,11 +77,12 @@ def docker_push(image_id: str):
         f'echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin; docker push {image_id}', shell=True, check=True)
 
 
-def build(image_id: str, dir_path: Path, build_args: dict):
+def build(image_id: str, dir_path: Path, build_args: Optional[Dict[str, str]] = None):
     """Builds and pushes the appropriate docker image."""
 
     assert_credentials_exist()
     if not docker_image_exists(image_id):
         docker_build(image_id, dir_path, build_args)
         docker_push(image_id)
-        assert docker_image_exists(image_id), 'The docker image was just built and pushed without error, but does not appear to exist.'
+        assert docker_image_exists(
+            image_id), 'The docker image was just built and pushed without error, but does not appear to exist.'
