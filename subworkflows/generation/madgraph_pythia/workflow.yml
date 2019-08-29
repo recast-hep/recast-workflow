@@ -1,13 +1,23 @@
 stages:
-  - name: madgraph_pythia
-    dependencies: ['init']
+  - name: madgraph
+    dependencies: ["init"]
     scheduler:
-      scheduler_type: 'singlestep-stage'
+      scheduler_type: "singlestep-stage"
       parameters:
-        outputhepmc: '{workdir}/output.hepmc'
-        n_events: {step: init, output: n_events}
-        param_card: {step: init, output: param_card}
-        run_card: {step: init, output: run_card}
-        proc_card: {step: init, output: proc_card}
-        ufotar: {step: init, output: ufotar}
-      step: {$ref: 'step.yml'}
+        outputlhe: "events.lhe"
+        n_events: { step: init, output: n_events }
+        param_card: { step: init, output: param_card }
+        run_card: { step: init, output: run_card }
+        proc_card: { step: init, output: proc_card }
+        ufotar: { step: init, output: ufotar }
+      step: { $ref: "madgraph.yml" }
+  - name: madgraph
+    dependencies: ["init"]
+    scheduler:
+      scheduler_type: "singlestep-stage"
+      parameters:
+        inputlhe: "events.lhe"
+        outputhepmc: "{workdir}/output.hepmc"
+        n_events: { step: init, output: n_events }
+        pythia_card: { step: init, output: pythia_card }
+      step: { $ref: "pythia.yml" }

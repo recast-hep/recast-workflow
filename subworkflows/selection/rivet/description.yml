@@ -2,6 +2,7 @@ description: 'Perform event selection on hepmc files using rivet. The yoda outpu
 settings:
   - {name: rivet_version, default: latest}
 inputs:
+common_inputs:
   - {name: analysis, description: 'The rivet analysis that should be used.'}
 interfaces:
   input: hepmc

@@ -1,0 +1,14 @@
+process:
+  process_type: interpolated-script-cmd
+  script: |
+    . ~/.profile
+    python steer_madgraph.py {proc_card} {outputlhe} --ufotar {ufotar} --run_card {run_card} \
+    --param_card {param_card} -n {n_events}
+publisher:
+  publisher_type: "frompar-pub"
+  outputmap:
+    lhefile: outputlhe
+environment:
+  environment_type: "docker-encapsulated"
+  image: recast/madgraph
+  imagetag: { madgraph_tag }

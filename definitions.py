@@ -1,6 +1,8 @@
-import os
+from pathlib import Path
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-INTERFACE_DIR = os.path.join(ROOT_DIR, 'interfaces')
-TESTS_DIR = os.path.join(ROOT_DIR, 'tests')
-WORKFLOWS_DIR = os.path.join(ROOT_DIR, 'workflows')
+ROOT_DIR = Path(__file__).resolve().parent
+INTERFACE_DIR = ROOT_DIR / 'interfaces'
+TESTS_DIR = ROOT_DIR / 'tests'
+WORKFLOWS_DIR = ROOT_DIR / 'workflows'
+SUBWORKFLOWS_DIR = ROOT_DIR / 'subworkflows'
+IMAGES_DIR = ROOT_DIR / 'images'

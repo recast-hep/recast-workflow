@@ -1,7 +1,8 @@
 description: 'Generate particle-level events using MadGraph 5 and Pythia 8.'
-settings:
+environment_settings:
   - {name: madgraph_version, default: 2.6.6}
   - {name: pythia_version, default: 8243}
+build_tags: {madgraph: madgraph_version, pythia: pythia_version}
 inputs:
   - {name: n_events, description: 'The number of events that should be generated.'}
   - {name: param_card, description: 'The parameter card.', optional: true}

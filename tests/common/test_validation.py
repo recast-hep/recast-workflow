@@ -5,7 +5,7 @@ import pytest
 class TestGetInvalidInputs:
     def test_no_input(self):
         assert validation.get_invalid_inputs(
-            'generation', 'madgraph_pythia', {}) == []
+            'generation', 'madgraph_pythia', {}) == {}
 
     def test_invalid_step(self):
         with pytest.raises(FileNotFoundError):
@@ -19,21 +19,22 @@ class TestGetInvalidInputs:
 
     def test_one_invalid_input(self):
         assert validation.get_invalid_inputs('generation', 'madgraph_pythia', {
-                                             'fakekey': 'foofum'}) == ['fakekey']
+                                             'fakekey': 'foofum'}) == {'fakekey': 'foofum'}
 
     def test_two_invalid_input(self):
         assert validation.get_invalid_inputs('generation', 'madgraph_pythia', {
-                                             'fakekey1': 'foofum', 'fakekey2': 'foofi'}) == ['fakekey1', 'fakekey2']
+                                             'fakekey1': 'foofum', 'fakekey2': 'foofi'}) == {
+            'fakekey1': 'foofum', 'fakekey2': 'foofi'}
 
     def test_valid_input(self):
         assert validation.get_invalid_inputs('generation', 'madgraph_pythia', {
-                                             'fakekey1': 'foofum', 'n_events': 10}) == ['fakekey1']
+                                             'fakekey1': 'foofum', 'n_events': 10}) == {
+                                             'fakekey1': 'foofum'}
 
 
 class TestGetMissingInputs:
     def test_all_missing(self):
-        assert validation.get_missing_inputs('generation', 'madgraph_pythia', {}) == [{'name': 'n_events', 'description': 'The number of events that should be generated.', 'optional': False}, {
-            'name': 'proc_card', 'description': 'The process card.', 'optional': False}]
+        assert validation.get_missing_inputs('generation', 'madgraph_pythia', {}) == ['n_events', 'proc_card']
 
     def test_invalid_step(self):
         with pytest.raises(FileNotFoundError):

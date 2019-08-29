@@ -4,10 +4,11 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pylint = "*"
 pytest = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
+autopep8 = "*"
+pylint = "*"
 
 [packages]
 pyyaml = "*"
