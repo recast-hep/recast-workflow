@@ -178,9 +178,19 @@ def make_workflow(subworkflows: List[Tuple[str, str, Dict[str, str], Dict[str, s
     return toplevel_path
 
 
+def run_make(args):
+    make_workflow_from_yaml(Path(args.spec))
+
 def main():
     parser = argparse.ArgumentParser(
         description='Make a complete workflow from sub-workflows.')
+    subparsers = parser.add_subparsers()
+    make_parser = subparsers.add_parser('make', help='Make a workflow from subworkflows.')
+    make_parser.add_argument('spec', help='yaml file describing the subworkflows that will be used.')
+    build_parser = subparsers.add_parser('build', help='Build a particular subworkflow (useful for development).')
+    build_parser.add_argument('step', help='The step the subworkflow fulfills.')
+    build_parser.add_argument('name', help='The name of the subworkflow.')
+
     parser.add_argument('make_workflow_yaml')
     args = parser.parse_args()
     workflow_dir = make_workflow_from_yaml(args.make_workflow_yaml)

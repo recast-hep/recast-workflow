@@ -1,6 +1,7 @@
 import os
 import subprocess
 from pathlib import Path
+from subprocess import PIPE, STDOUT
 from typing import Dict, Optional
 
 import requests
@@ -66,15 +67,15 @@ def docker_build(image_id: str, dir_path: Path, build_args: Optional[Dict[str, s
         build_args_string = ''
     try:
         subprocess.run(
-            f'docker build -t {image_id} {build_args_string} {dir_path}', shell=True, check=True)
+            f'docker build -t {image_id} {build_args_string} {dir_path}', shell=True, check=True, stdout=PIPE, stderr=STDOUT)
     except:
         subprocess.run(
-            f'docker build -t {image_id} --no-cache {build_args_string} {dir_path}', shell=True, check=True)
+            f'docker build -t {image_id} --no-cache {build_args_string} {dir_path}', shell=True, check=True, stdout=PIPE, stderr=STDOUT)
 
 
 def docker_push(image_id: str):
     subprocess.run(
-        f'echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin; docker push {image_id}', shell=True, check=True)
+        f'echo "$DOCKER_PASSWORD" | docker login --username $DOCKER_USERNAME --password-stdin; docker push {image_id}', shell=True, check=True, stdout=PIPE, stderr=STDOUT)
 
 
 def build(image_id: str, dir_path: Path, build_args: Optional[Dict[str, str]] = None):
