@@ -20,5 +20,5 @@ def dump_rivet():
     json.dump(dumpdata, open('rivet_dump.json', 'w'))
 
 
-def is_valid(common_inputs: Dict[str, str]) -> bool:
+def is_valid() -> bool:
     pass

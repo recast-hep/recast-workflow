@@ -4,7 +4,8 @@ stages:
     scheduler:
       scheduler_type: 'singlestep-stage'
       parameters:
-        outputjson: '{workdir}/output.json'
-        hepmc: {step: init, output: hepmc}
+        output_interface: {step: init, output: output_interface}
+        output_path: '{workdir}/output'
+        hepmc: {step: init, output: input}
         analysis: {step: init, output: analysis}
       step: {$ref: 'step.yml'}

@@ -1,38 +1,40 @@
 import importlib
 import logging
 from collections import defaultdict
-from typing import Dict, List
+from typing import Dict, List, OrderedDict
 
 import yaml
 
+import definitions
 from common import utils
+import itertools
 
+def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
+    """Given values for common inputs, returns all combinations of subworkflows that support those values.
 
-def query(common_inputs: Dict[str, Dict[str, str]]) -> Dict[str, List[str]]:
-    """Given values for common inputs for some steps, returns the subworkflows for each of those steps that supports those values.
-
-    Each subworkflow for the given steps is assumed to implement a common_inputs.py file with an is_valid(common_inputs: Dict[str, str]) -> bool function.
+    Each common input should be defined in recast-workflow/common_inputs.yml, in which it is associated with a set of steps. 
+    Each subworkflow for those steps is assumed to implement a common_inputs.py file with an is_valid() -> bool function.
     This function is called for each subworkflow to determine whether it should be included.
 
+    Once the set of allowed subworkflows for these steps is determined, the set of all possible combinations is generated using the interfaces listed in description.yml for each subworkflow.
+
     Args:
-        common_inputs: A dict where each key-value pair is of the form (step, step_inputs), where step_inputs is a dict mapping step input names to values.
+        common_inputs: A dict where each key-value pair is of the form (input name, input value).
 
     Returns:
-        A dict where each key-value pair is of the form (step, allowed_subworkflows), where allowed_subworkflows is a list of the subworkflows for step that are allowed given the common inputs.
+        A list of ordered dictionaries, where each ordered dictionary has key-value pairs of the form (step, subworkflow) which describe one possible subworkflow combination that is valid for the given common inputs.
     """
 
     allowed = defaultdict(list)
-    for step, step_inputs in common_inputs.items():
-        # Verify that the input names are valid.
-        common_inputs = utils.get_common_inputs(step)
-        if not common_inputs:
-            raise ValueError(
-                f'common inputs {step_inputs} were provided for {step}, but {step} has no common inputs.')
-        invalid_inputs = set(step_inputs.keys()).difference(common_inputs)
-        if invalid_inputs:
-            raise ValueError(
-                f'common inputs {invalid_inputs} were provided for {step}, but these are not defined in common_inputs.yml for {step}.')
-        # Ask each subworkflow whether it should be included.
+    descriptions = utils.get_common_inputs(include_descriptions=True)
+    invalid_inputs = set(common_inputs.keys()).difference(
+        descriptions.keys())
+    if invalid_inputs:
+        raise ValueError(
+            f'common inputs {invalid_inputs} were provided, but these are not defined in common_inputs.yml.')
+
+    steps = set(itertools.chain(descriptions[k]['steps'] for k in common_inputs))
+    for step in steps:
         step_dir_path = utils.get_step_dir_path(step)
         subworkflow_dir_paths = [
             d for d in step_dir_path.glob('*') if d.is_dir()]
@@ -46,7 +48,7 @@ def query(common_inputs: Dict[str, Dict[str, str]]) -> Dict[str, List[str]]:
                     'common_inputs', common_inputs_script_path)
                 common_inputs_module = importlib.util.module_from_spec(spec)
                 spec.loader.exec_module(common_inputs_module)
-                if common_inputs_module.is_valid(step_inputs):
+                if common_inputs_module.is_valid(**{k: v for k,v in common_inputs.items() if k in common_inputs_module.is_valid.func_code.co_varnames}):
                     allowed[step].append(subworkflow_dir_path.name)
             except Exception:
                 logging.error(

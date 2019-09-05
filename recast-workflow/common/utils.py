@@ -22,17 +22,14 @@ def get_step_dir_path(step: str) -> Path:
     return definitions.SUBWORKFLOWS_DIR / step
 
 
-def get_common_inputs_path(step: str) -> Path:
-    return get_step_dir_path(step) / 'common_inputs.yml'
+def get_common_inputs_description_path() -> Path:
+    return definitions.SRC_DIR / 'common_inputs.yml'
 
 
-def get_common_inputs(step: str, include_descriptions=False) -> Dict[str, str]:
-    """Returns the common inputs for the given step, along with their descriptions."""
-    step_dir_path = get_step_dir_path(step)
-    common_inputs_path = step_dir_path / 'common_inputs.yml'
-    if not common_inputs_path.exists():
-        return []
-    with common_inputs_path.open() as f:
+def get_common_inputs(include_descriptions=False) -> Dict[str, str]:
+    """Returns the set of common inputs, optionally along with their descriptions."""
+    path = get_common_inputs_description_path()
+    with path.open() as f:
         if include_descriptions:
             return yaml.full_load(f)
         else:
