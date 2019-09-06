@@ -1,6 +1,6 @@
 import importlib
 import logging
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from typing import Dict, List, OrderedDict
 
 import yaml
@@ -8,6 +8,13 @@ import yaml
 import definitions
 from common import utils
 import itertools
+
+
+def get_all_combinations():
+    """Returns all possible subworkflow combinations."""
+    
+    definitions.SUBWORKFLOWS_DIR.glob()
+
 
 def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
     """Given values for common inputs, returns all combinations of subworkflows that support those values.
@@ -25,7 +32,6 @@ def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
         A list of ordered dictionaries, where each ordered dictionary has key-value pairs of the form (step, subworkflow) which describe one possible subworkflow combination that is valid for the given common inputs.
     """
 
-    allowed = defaultdict(list)
     descriptions = utils.get_common_inputs(include_descriptions=True)
     invalid_inputs = set(common_inputs.keys()).difference(
         descriptions.keys())
@@ -34,6 +40,7 @@ def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
             f'common inputs {invalid_inputs} were provided, but these are not defined in common_inputs.yml.')
 
     steps = set(itertools.chain(descriptions[k]['steps'] for k in common_inputs))
+    allowed = {step: [] for step in steps}
     for step in steps:
         step_dir_path = utils.get_step_dir_path(step)
         subworkflow_dir_paths = [
@@ -54,5 +61,5 @@ def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
                 logging.error(
                     f'Subworkflow {subworkflow_dir_path.name} for step {step} has an invalid common_inputs.py.')
                 raise
-
+    
     return allowed
