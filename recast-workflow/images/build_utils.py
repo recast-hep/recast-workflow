@@ -59,7 +59,6 @@ def docker_build(image_id: str, dir_path: Path, build_args: Optional[Dict[str, s
     """Builds a docker image.
 
     Tries to build using the cache first. If that fails, then it tries again without the cache."""
-
     if build_args:
         build_args_string = ' '.join(
             f'--build-arg {k}={v}' for k, v in build_args.items())

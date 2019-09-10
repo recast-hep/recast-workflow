@@ -6,14 +6,19 @@ import definitions
 import subprocess
 from images import build_utils
 
+@pytest.fixture(scope='function')
+def environ():
+    old_environ = os.environ.copy()
+    yield os.environ
+    os.environ.update(old_environ)
 
 class TestCredentialsExist:
-    def test_exists(self):
+    def test_exists(self, environ):
         os.environ['DOCKER_USERNAME'] = 'username'
         os.environ['DOCKER_PASSWORD'] = 'password'
         assert build_utils.credentials_exist()
 
-    def test_does_not_exist(self):
+    def test_does_not_exist(self, environ):
         if 'DOCKER_USERNAME' in os.environ:
             del os.environ['DOCKER_USERNAME']
         if 'DOCKER_PASSWORD' in os.environ:
@@ -34,16 +39,15 @@ class TestDockerImageExists:
 class TestDockerBuild:
     def test_no_tag(self):
         with pytest.raises(subprocess.CalledProcessError):
-            build_utils.docker_build('', os.path.join(
-                definitions.ROOT_DIR, 'images', 'madgraph_pythia', 'madgraph'), None)
+            build_utils.docker_build('', definitions.IMAGES_DIR / 'madgraph_pythia' / 'madgraph', None)
 
     def test_no_dir(self):
         with pytest.raises(subprocess.CalledProcessError):
             build_utils.docker_build(None, '', None)
     
     def test_valid(self):
-        build_utils.docker_build('recast/madgraph:2.6.6', os.path.join(definitions.ROOT_DIR, 'images', 'madgraph_pythia', 'madgraph'), {'MADGRAPH_VERSION': '2.6.6'})
+        build_utils.docker_build('recast/madgraph:2.6.6', definitions.IMAGES_DIR / 'madgraph_pythia' / 'madgraph', {'MADGRAPH_VERSION': '2.6.6'})
 
 class TestBuild:
     def test_valid(self):
-        build_utils.build('recast/madgraph:2.6.6', os.path.join(definitions.ROOT_DIR, 'images', 'madgraph_pythia', 'madgraph'), {'MADGRAPH_VERSION': '2.6.6'})
+        build_utils.build('recast/madgraph:2.6.6', definitions.IMAGES_DIR / 'madgraph_pythia' / 'madgraph', {'MADGRAPH_VERSION': '2.6.6'})

@@ -1,10 +1,13 @@
 description: 'Perform event selection using rivet for subsequent statistical analysis.'
-settings:
+environment_settings:
   - {name: rivet_version, default: latest}
+build_tags:
+  rivet: rivet_version
+inputs: []
 interfaces:
   input:
     - hepmc
   output:
-    - yoda
-    - json
+    - hist_yoda
+    - hist_json
   

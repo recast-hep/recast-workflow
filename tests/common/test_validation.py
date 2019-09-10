@@ -34,7 +34,7 @@ class TestGetInvalidInputs:
 
 class TestGetMissingInputs:
     def test_all_missing(self):
-        assert validation.get_missing_inputs('generation', 'madgraph_pythia', {}) == ['n_events', 'proc_card']
+        assert validation.get_missing_inputs('generation', 'madgraph_pythia', {}) == set(['n_events', 'proc_card'])
 
     def test_invalid_step(self):
         with pytest.raises(FileNotFoundError):
@@ -48,4 +48,4 @@ class TestGetMissingInputs:
 
     def test_no_missing(self):
         assert validation.get_missing_inputs('generation', 'madgraph_pythia', {
-                                             'n_events': 10, 'proc_card': 'path/to/proc_card', 'ufotar': 'path/to/ufotar'}) == []
+                                             'n_events': 10, 'proc_card': 'path/to/proc_card', 'ufotar': 'path/to/ufotar'}) == set()

@@ -3,9 +3,9 @@ import os
 import pytest
 
 import definitions
-from scripts import make_workflow
+from scripts import workflow
 
-TEST_DIR = os.path.join(definitions.TESTS_DIR, 'scripts', 'make_workflow')
+TEST_DIR = definitions.TESTS_DIR / 'scripts' / 'workflow'
 
 
 class TestMakeWorkflowFromYaml:
@@ -13,6 +13,6 @@ class TestMakeWorkflowFromYaml:
     def test_valid_args(self):
         input_path = os.path.join(TEST_DIR, 'valid_input.yml')
         expected = {}
-        actual = make_workflow.make_workflow_from_yaml(input_path)
+        actual = workflow.make_workflow_from_yaml(input_path)
         assert actual == expected
 

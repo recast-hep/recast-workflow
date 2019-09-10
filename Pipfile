@@ -10,6 +10,7 @@ sphinx-rtd-theme = "*"
 autopep8 = "*"
 pylint = "*"
 mypy = "*"
+pytest-timeout = "*"
 
 [packages]
 pyyaml = "*"

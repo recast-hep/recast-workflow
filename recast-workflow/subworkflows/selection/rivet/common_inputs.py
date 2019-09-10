@@ -1,24 +1,24 @@
 import json
 import logging
+import time
 from typing import Dict
+
+import requests
 
 import definitions
 from common import utils
 
 
-def dump_rivet():
-    rivetdata = json.load(open('rivet/analyses.json'))
-    dumpdata = []
-
-    for inspire_id, rivet_ids in rivetdata.items():
-        if any([('ATLAS' in x) for x in rivet_ids]):
-            logging.debug(inspire_id)
-            data = utils.download_inspire(inspire_id)
-            data = utils.extract_inspire(inspire_id, data)
-            dumpdata.append(data)
-
-    json.dump(dumpdata, open('rivet_dump.json', 'w'))
+def get_analyses():
+    cache_path = definitions.CACHE_DIR / 'selection' / 'rivet' / 'analyses.json'
+    if not cache_path.exists() or (time.time() - cache_path.stat().st_mtime) > 3600:
+        cache_path.parent.mkdir(parents=True, exist_ok=True)
+        with cache_path.open('w+') as f:
+            #TODO: handle requests error cases.
+            f.write(requests.post('https://rivet.hepforge.org/analyses.json').text)
+    with cache_path.open('r') as f:
+        return json.load(f)
 
 
-def is_valid() -> bool:
-    pass
+def is_valid(analysis_id: str) -> bool:
+    return analysis_id in get_analyses()

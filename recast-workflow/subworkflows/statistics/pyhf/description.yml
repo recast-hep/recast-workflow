@@ -1,0 +1,11 @@
+description: 'Uses pyhf to apply the given patch and signal histograms to the given workspace and generate CLs statistics.'
+environment_settings:
+  - {name: pyhf_version, default: latest}
+build_args:
+  pyhf: pyhf_version
+inputs:
+  - {name: workspace, description: The pyhf workspace describing the original analysis' statistics.}
+interfaces:
+  input:
+    - hist_json
+  output: []

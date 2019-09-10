@@ -74,7 +74,7 @@ def build_subworkflow(step: str, name: str, environment_settings: dict):
     It is assumed that this tag is also the build arg for the image creation, and a corresponding docker build and push are run.
     """
     subworkflow_dir_path = utils.get_image_dir_path(step, name)
-    description = utils.get_description(step, name)
+    description = utils.get_subworkflow_description(step, name)
 
     dir_paths = [p.parent for p in subworkflow_dir_path.rglob('Dockerfile')]
     used_environment_settings = set()
@@ -154,7 +154,7 @@ def make_workflow(subworkflows: List[Tuple[str, str, Dict[str, str], Dict[str, s
         # Create parameters dict from inputs + interface.
         workflow_path = make_subworkflow(
             step, name, environment_settings, toplevel_path)
-        description = utils.get_description(step, name)
+        description = utils.get_subworkflow_description(step, name)
         parameters = {k: {'step': 'init', 'output': k}
                       for k in inputs}
         interfaces = description['interfaces']

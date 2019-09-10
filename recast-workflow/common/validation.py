@@ -7,9 +7,8 @@ from common import utils
 
 def get_missing_inputs(step: str, workflow_name: str, inputs: Dict[str, str], include_descriptions=False, include_optional=False) -> Union[List[str], Dict[str, str]]:
     """Returns a list of the inputs for workflow_name for the given step that are missing from the given inputs."""
-    description = utils.get_description(step, workflow_name)
-    common_inputs = utils.get_common_inputs(
-        step, include_descriptions=include_descriptions)
+    description = utils.get_subworkflow_description(step, workflow_name)
+    common_inputs = utils.get_common_inputs(step, include_descriptions)
     if include_descriptions:
         required_inputs = {e['name']: e['description']
                            for e in description['inputs'] if not e['optional'] or include_optional}
@@ -21,13 +20,13 @@ def get_missing_inputs(step: str, workflow_name: str, inputs: Dict[str, str], in
                            if not e['optional'] or include_optional]
         required_inputs.extend(common_inputs)
         inputs = inputs.keys()
-        missing_inputs = list(set(required_inputs).difference(set(inputs)))
+        missing_inputs = set(required_inputs).difference(set(inputs))
     return missing_inputs
 
 
 def get_invalid_inputs(step: str, workflow_name: str, inputs: Dict[str, str]) -> Dict[str, str]:
     """Returns a list of the elements from the given inputs that are invalid."""
-    description = utils.get_description(step, workflow_name)
+    description = utils.get_subworkflow_description(step, workflow_name)
     common_inputs = utils.get_common_inputs(step)
     valid_inputs = set(common_inputs).union(
         set(e['name'] for e in description['inputs']))

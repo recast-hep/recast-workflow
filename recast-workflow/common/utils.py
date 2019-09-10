@@ -10,12 +10,12 @@ import yaml
 import definitions
 
 
-def get_subworkflow_dir_path(step: str, subworkflow_name: str) -> Path:
-    return definitions.SUBWORKFLOWS_DIR / step / subworkflow_name
+def get_subworkflow_dir_path(step: str, subworkflow: str) -> Path:
+    return definitions.SUBWORKFLOWS_DIR / step / subworkflow
 
 
-def get_image_dir_path(step: str, subworkflow_name: str) -> Path:
-    return definitions.IMAGES_DIR / step / subworkflow_name
+def get_image_dir_path(step: str, subworkflow: str) -> Path:
+    return definitions.IMAGES_DIR / step / subworkflow
 
 
 def get_step_dir_path(step: str) -> Path:
@@ -26,24 +26,21 @@ def get_common_inputs_description_path() -> Path:
     return definitions.SRC_DIR / 'common_inputs.yml'
 
 
-def get_common_inputs(include_descriptions=False) -> Dict[str, str]:
+def get_common_inputs(step=None, include_descriptions=False) -> Dict[str, str]:
     """Returns the set of common inputs, optionally along with their descriptions."""
     path = get_common_inputs_description_path()
     with path.open() as f:
+        text = yaml.full_load(f)
+        if step:
+            text = {k: v for k,v in text.items() if step in v['steps']}
         if include_descriptions:
-            return yaml.full_load(f)
+            return text
         else:
-            return yaml.full_load(f).keys()
+            return text.keys()
 
 
-def get_workflow_path(step, workflow_name, environment_settings):
-    # TODO: use given environment_settings.
-    raise NotImplementedError()
-    # return os.path.join(get_toplevel_path(step, workflow_name), 'workflow.yml')
-
-
-def get_description(step, workflow_name):
-    toplevel_path = get_subworkflow_dir_path(step, workflow_name)
+def get_subworkflow_description(step, subworkflow):
+    toplevel_path = get_subworkflow_dir_path(step, subworkflow)
     description_path = os.path.join(toplevel_path, 'description.yml')
     with open(description_path, 'r') as fd:
         description = yaml.full_load(fd)
