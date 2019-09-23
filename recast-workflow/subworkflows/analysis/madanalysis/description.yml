@@ -1,0 +1,11 @@
+description: 'Analyze events using MadAnalysis.'
+environment_settings:
+  - {name: madanalysis_version, default: 1.7}
+build_tags: 
+  madanalysis: madanalysis_version
+inputs:
+  - {name: recast_card, description: 'Specifies which analyses should be used.'}
+interfaces:
+  input:
+    - hepmc
+  output: []

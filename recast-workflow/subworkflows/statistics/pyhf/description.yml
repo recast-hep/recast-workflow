@@ -7,5 +7,5 @@ inputs:
   - {name: workspace, description: The pyhf workspace describing the original analysis' statistics.}
 interfaces:
   input:
-    - hist_json
+    - yoda
   output: []

@@ -10,43 +10,60 @@ from pathlib import Path
 import yaml
 
 import definitions
-from common import utils, validation
+from common import utils
+from scripts import catalogue
 from images import build_utils
 
 from typing import List, Tuple, Dict
 
 
+
+def expand_workflow(workflow_path: Path, toplevel_path: Path):
+    def replace_refs(yaml_obj):
+        if type(yaml_obj) == dict:
+            for k in yaml_obj:
+                if k == '$ref':
+                    return expand_workflow(toplevel_path / Path(yaml_obj[k]), toplevel_path)
+                yaml_obj[k] = replace_refs(yaml_obj[k])
+        elif type(yaml_obj) == list:
+            for i, v in enumerate(yaml_obj):
+                yaml_obj[i] = replace_refs(v)
+        return yaml_obj
+    with workflow_path.open() as f:
+        yaml_obj = yaml.safe_load(f)
+    return replace_refs(yaml_obj)
+
+
 def make_workflow_dir():
-    return tempfile.mkdtemp(suffix='workflow-', dir=definitions.WORKFLOWS_DIR)
+    if not definitions.WORKFLOWS_DIR.exists():
+        definitions.WORKFLOWS_DIR.mkdir(parents=True, exist_ok=True)
+    return Path(tempfile.mkdtemp(prefix='workflow-', dir=definitions.WORKFLOWS_DIR))
 
 
-def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dict[str, str], toplevel_path: Path) -> Path:
-    """Creates a directory in toplevel_path that contains the given subworkflow with the specified environment settings.
+def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dict[str, str]) -> Dict:
+    """Creates a yadage workflow for the given subworkflow with the given environment settings.
 
     If make.py exists in the corresponding subworkflow directory, it is run with the assumption that it will handle making the subworkflow. 
-    Otherwise, all files in the subworkflow directory are copied and any environment variables enclosed in braces are replaced with the corresponding value in environment_settings.
+    Otherwise, workflow.py in the subworkflow directory is expanded using jsonref and any environment variables enclosed in braces are replaced with the corresponding value in environment_settings.
 
     Returns:
-        The path of the created subworkflow directory.
+        A dict representing the contents of a yaml file that specifies a yadage workflow.
     """
-
-    # TODO: verify that environment_settings is consistent with description.yml.
-    dest_path = toplevel_path / step / subworkflow_name
-    dest_path.mkdir()
     source_path = utils.get_subworkflow_dir_path(step, subworkflow_name)
     make_path = source_path / 'make.py'
     if make_path.exists():
         spec = importlib.util.spec_from_file_location('make', make_path)
         make_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(make_module)
-        make_module.make(environment_settings, dest_path)
+        subworkflow = make_module.make(environment_settings)
     else:
-        shutil.copytree(source_path, dest_path)
         # Add environment settings to the copied yaml files.
         used_settings = set()
-        for p in dest_path.rglob('*.yml'):
+        subworkflow_path = source_path / 'workflow.yml'
+        subworkflow = expand_workflow(subworkflow_path, subworkflow_path.parent)
+        for p in source_path.rglob('*.yml'):
             with p.open() as f:
-                text = yaml.full_load(f)
+                text = yaml.safe_load(f)
                 valid_settings = {}
                 breakpoint()
                 for k, v in environment_settings.items():
@@ -63,7 +80,7 @@ def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dic
             raise ValueError(
                 f'The following environment settings were provided but not used: {unused_settings}')
 
-        return dest_path
+        return subworkflow
 
 
 def build_subworkflow(step: str, name: str, environment_settings: dict):
@@ -117,78 +134,77 @@ def build_subworkflow(step: str, name: str, environment_settings: dict):
 def make_workflow_from_yaml(yaml_path: Path):
     with yaml_path.open() as fd:
         yaml_text = yaml.safe_load(fd)
-    
+
     subworkflows = []
 
     return make_workflow(subworkflows)
 
 
-def make_workflow(subworkflows: List[Tuple[str, str, Dict[str, str], Dict[str, str]]]) -> Path:
-    """Creates a directory that contains a workflow specified by the given subworkflows list. 
+def make_workflow(steps: List[str], names: List[str], environment_settings: List[Dict[str, str]]) -> Dict:
+    """Creates a yadage workflow using the given subworkflow specifications. 
 
     Args:
-        subworkflows: A list of the subworkflows. Each element should be a tuple of (step, name, inputs, environment_settings).
+        steps: A list of the subworkflow steps for each subworkflow.
+        names: A list of the subworkflow names for each subworkflow.
+        environment_settings: A list of dicts mapping environment setting names to values for each subworkflow.
 
     Returns:
-        A path to the directory that contains the workflow. The caller is responsible for cleaning up the directory after it has been used."""
+        A dict representing the contents of a yaml file that specifies a yadage workflow."""
 
-    toplevel_path = make_workflow_dir()
     workflow = {'stages': []}
-    for i, (step, name, inputs, environment_settings) in enumerate(subworkflows):
-        # Validate the inputs.
-        missing_inputs = validation.get_missing_inputs(step, name, inputs)
-        if len(missing_inputs) > 0:
-            raise ValueError(
-                f'subworkflow {name} for step {step} has missing inputs. The following inputs are missing: {missing_inputs}')
-        invalid_inputs = validation.get_invalid_inputs(step, name, inputs)
-        if len(invalid_inputs) > 0:
-            raise ValueError(
-                f'subworkflow {name} for step {step} has invalid inputs. The following inputs are invalid: {invalid_inputs}')
-
+    for i, (step, name, sub_environment_settings) in enumerate(zip(steps, names, environment_settings)):
         # Validate the environment settings.
-        # TODO
+        invalid_environment_settings = set(sub_environment_settings.keys()).difference(set(catalogue.get_environment_settings(step, name)))
+        if len(invalid_environment_settings) > 0:
+            raise ValueError(f'Environment settings for subworkflow {name} from step {step} contains the following invalid parameters (not listed in the associated description.yml): {invalid_environment_settings}')
 
         # Build the image if necessary.
-        build_subworkflow(step, name, environment_settings)
+        build_subworkflow(step, name, sub_environment_settings)
 
         # Create parameters dict from inputs + interface.
-        workflow_path = make_subworkflow(
-            step, name, environment_settings, toplevel_path)
+        subworkflow = make_subworkflow(
+            step, name, sub_environment_settings, toplevel_path)
         description = utils.get_subworkflow_description(step, name)
+        inputs = catalogue.get_missing_inputs(step, name, {})
         parameters = {k: {'step': 'init', 'output': k}
                       for k in inputs}
         interfaces = description['interfaces']
         if 'input' in interfaces:
-            interface = utils.get_interface(interfaces['input'])
+            interface = utils.get_interface(interfaces['input'][0])
             for parameter in interface['parameters']:
                 if parameter['name'] in parameters:
                     raise ValueError(
                         f'interface {interfaces["input"]} has a parameter {parameter["name"]} that conflicts with a parameter for workflow {name} for step {step}.')
                 parameters[parameter['name']] = {
-                    'step': subworkflows[i-1].step, 'output': parameter['name']}
+                    'step': steps[i-1], 'output': parameter['name']}
         # Write the rest of the yaml.
         scheduler = {'scheduler_type': 'singlestep-stage',
-                     'parameters': parameters, 'workflow': {'$ref': workflow_path}}
+                     'parameters': parameters, 'workflow': subworkflow}
         dependencies = ['init']
         if i > 0:
-            dependencies.append(subworkflows[i-1].subworkflow)
+            dependencies.append(f'{steps[i-1]}_{names[i-1]}')
         workflow['stages'].append(
-            {'name': name, 'dependencies': dependencies, 'scheduler': scheduler})
-            
-    return toplevel_path
+            {'name': f'{step}_{name}', 'dependencies': dependencies, 'scheduler': scheduler})
+
+    return workflow
 
 
 def run_make(args):
     make_workflow_from_yaml(Path(args.spec))
 
+
 def main():
     parser = argparse.ArgumentParser(
         description='Make a complete workflow from sub-workflows.')
     subparsers = parser.add_subparsers()
-    make_parser = subparsers.add_parser('make', help='Make a workflow from subworkflows.')
-    make_parser.add_argument('spec', help='yaml file describing the subworkflows that will be used.')
-    build_parser = subparsers.add_parser('build', help='Build a particular subworkflow (useful for development).')
-    build_parser.add_argument('step', help='The step the subworkflow fulfills.')
+    make_parser = subparsers.add_parser(
+        'make', help='Make a workflow from subworkflows.')
+    make_parser.add_argument(
+        'spec', help='yaml file describing the subworkflows that will be used.')
+    build_parser = subparsers.add_parser(
+        'build', help='Build a particular subworkflow (useful for development).')
+    build_parser.add_argument(
+        'step', help='The step the subworkflow fulfills.')
     build_parser.add_argument('name', help='The name of the subworkflow.')
 
     parser.add_argument('make_workflow_yaml')

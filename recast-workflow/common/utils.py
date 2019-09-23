@@ -30,7 +30,7 @@ def get_common_inputs(step=None, include_descriptions=False) -> Dict[str, str]:
     """Returns the set of common inputs, optionally along with their descriptions."""
     path = get_common_inputs_description_path()
     with path.open() as f:
-        text = yaml.full_load(f)
+        text = yaml.safe_load(f)
         if step:
             text = {k: v for k,v in text.items() if step in v['steps']}
         if include_descriptions:
@@ -43,7 +43,7 @@ def get_subworkflow_description(step, subworkflow):
     toplevel_path = get_subworkflow_dir_path(step, subworkflow)
     description_path = os.path.join(toplevel_path, 'description.yml')
     with open(description_path, 'r') as fd:
-        description = yaml.full_load(fd)
+        description = yaml.safe_load(fd)
     for d in description['inputs']:
         d.setdefault('optional', False)
     return description
@@ -53,7 +53,7 @@ def get_interface(interface_name):
     interface_path = os.path.join(
         definitions.INTERFACE_DIR, f'{interface_name}.yml')
     with open(interface_path, 'r') as fd:
-        interface = yaml.full_load(fd)
+        interface = yaml.safe_load(fd)
     return interface
 
 

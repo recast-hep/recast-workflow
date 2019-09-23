@@ -11,4 +11,4 @@ publisher:
 environment:
   environment_type: "docker-encapsulated"
   image: recast/madgraph
-  imagetag: { madgraph_tag }
+  imagetag: {madgraph_version}

@@ -1,8 +1,10 @@
+import argparse
 import importlib
 import itertools
 import logging
+import os
 from collections import OrderedDict, defaultdict, namedtuple
-from typing import Dict, List, OrderedDict
+from typing import Dict, List, OrderedDict, Union
 
 import yaml
 
@@ -27,8 +29,10 @@ def get_all_combinations():
                 description['interfaces']['input'].append('none')
             if len(description['interfaces']['output']) == 0:
                 description['interfaces']['output'].append('none')
-            pair_to_output_interfaces[pair] = description['interfaces']['output']
-            for input_interface in description['interfaces']['input']:
+            # TODO: update when interface design is decided.
+            pair_to_output_interfaces[pair] = [
+                description['interfaces']['output'][0]]
+            for input_interface in [description['interfaces']['input'][0]]:
                 input_interface_to_pairs[input_interface].add(pair)
 
     # NOTE: assumes that no loops are possible.
@@ -54,7 +58,7 @@ def get_all_combinations():
     return final_combinations
 
 
-def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
+def get_valid_combinations(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
     """Given values for common inputs, returns all combinations of subworkflows that support those values.
 
     Each common input should be defined in recast-workflow/common_inputs.yml, in which it is associated with a set of steps. 
@@ -106,3 +110,47 @@ def query(common_inputs: Dict[str, str]) -> List[OrderedDict[str, str]]:
         s not in combinations or combinations[s] in allowed[s] for s in steps)]
 
     return combinations
+
+
+def get_missing_inputs(step: str, subworkflow_name: str, inputs: Dict[str, str], include_descriptions=False, include_optional=False) -> Union[List[str], Dict[str, str]]:
+    """Returns the inputs for the given subworkflow that are missing from the given inputs."""
+    description = utils.get_subworkflow_description(step, subworkflow_name)
+    common_inputs = utils.get_common_inputs(step, include_descriptions)
+    if include_descriptions:
+        required_inputs = {e['name']: e['description']
+                           for e in description['inputs'] if not e['optional'] or include_optional}
+        required_inputs.update(common_inputs)
+        missing_inputs = {
+            k: v for k, v in required_inputs.items() if k not in inputs.keys()}
+    else:
+        required_inputs = [e['name'] for e in description['inputs']
+                           if not e['optional'] or include_optional]
+        required_inputs.extend(common_inputs)
+        inputs = inputs.keys()
+        missing_inputs = set(required_inputs).difference(set(inputs))
+    return missing_inputs
+
+
+def get_invalid_inputs(step: str, subworkflow_name: str, inputs: Dict[str, str]) -> Dict[str, str]:
+    """Returns a list of the elements from the given inputs that are invalid for the given subworkflow."""
+    description = utils.get_subworkflow_description(step, subworkflow_name)
+    common_inputs = utils.get_common_inputs(step)
+    valid_inputs = set(common_inputs).union(
+        set(e['name'] for e in description['inputs']))
+    invalid_inputs = {k: v for k, v in inputs.items() if k not in valid_inputs}
+    return invalid_inputs
+
+
+def get_environment_settings(step: str, subworkflow_name: str, include_default=False) -> Union[List[str], Dict[str, str]]:
+    """Returns the possible environment settings for the given subworkflow."""
+    description = utils.get_subworkflow_description(step, subworkflow_name)
+    if include_default:
+        if 'environment_settings' not in description:
+            return {}
+        else:
+            return {e['name']: e['default'] for e in description['environment_settings']}
+    else:
+        if 'environment_settings' not in description:
+            return []
+        else:
+            return [e['name'] for e in description['environment_settings']]

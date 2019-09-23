@@ -1,0 +1,3 @@
+description: 'A simple interface that passes a single yoda file from selection to statistics.'
+parameters:
+  - {name: 'yoda', description: 'A .yoda file containing histograms from events.'}

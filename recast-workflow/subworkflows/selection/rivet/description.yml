@@ -8,6 +8,5 @@ interfaces:
   input:
     - hepmc
   output:
-    - hist_yoda
-    - hist_json
+    - yoda
   
