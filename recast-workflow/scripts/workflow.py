@@ -6,16 +6,14 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+from typing import Dict, List, Tuple
 
 import yaml
 
 import definitions
 from common import utils
-from scripts import catalogue
 from images import build_utils
-
-from typing import List, Tuple, Dict
-
+from scripts import catalogue
 
 
 def expand_workflow(workflow_path: Path, toplevel_path: Path):
@@ -43,7 +41,7 @@ def make_workflow_dir():
 def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dict[str, str]) -> Dict:
     """Creates a yadage workflow for the given subworkflow with the given environment settings.
 
-    If make.py exists in the corresponding subworkflow directory, it is run with the assumption that it will handle making the subworkflow. 
+    If make.py exists in the corresponding subworkflow directory, it is run with the assumption that it will handle making the subworkflow.
     Otherwise, workflow.py in the subworkflow directory is expanded using jsonref and any environment variables enclosed in braces are replaced with the corresponding value in environment_settings.
 
     Returns:
@@ -60,27 +58,25 @@ def make_subworkflow(step: str, subworkflow_name: str, environment_settings: Dic
         # Add environment settings to the copied yaml files.
         used_settings = set()
         subworkflow_path = source_path / 'workflow.yml'
-        subworkflow = expand_workflow(subworkflow_path, subworkflow_path.parent)
-        for p in source_path.rglob('*.yml'):
-            with p.open() as f:
-                text = yaml.safe_load(f)
-                valid_settings = {}
-                breakpoint()
-                for k, v in environment_settings.items():
-                    if f'{{k}}' in text:
-                        valid_settings[k] = v
-                valid_settings = {
-                    k: v for k, v in environment_settings.items() if f'{{k}}' in text}
-                text = text.format(**valid_settings)
-                used_settings.update(valid_settings.keys())
-
+        subworkflow = expand_workflow(
+            subworkflow_path, subworkflow_path.parent)
+        valid_settings = {}
+        text = yaml.dump(subworkflow)
+        for k, v in environment_settings.items():
+            if f'{{k}}' in text:
+                valid_settings[k] = v
+        valid_settings = {
+            k: v for k, v in environment_settings.items() if f'{{k}}' in text}
+        text = text.format(**valid_settings)
+        used_settings.update(valid_settings.keys())
         unused_settings = set(environment_settings.keys()
                               ).difference(used_settings)
         if len(unused_settings) != 0:
             raise ValueError(
                 f'The following environment settings were provided but not used: {unused_settings}')
-
-        return subworkflow
+        subworkflow = yaml.safe_load(text)
+    
+    return subworkflow
 
 
 def build_subworkflow(step: str, name: str, environment_settings: dict):
@@ -133,11 +129,13 @@ def build_subworkflow(step: str, name: str, environment_settings: dict):
 
 def make_workflow_from_yaml(yaml_path: Path):
     with yaml_path.open() as fd:
-        yaml_text = yaml.safe_load(fd)
+        yaml_obj = yaml.safe_load(fd)
 
-    subworkflows = []
+    steps = yaml_obj['steps']
+    names = yaml_obj['names']
+    environment_settings = yaml_obj['environment_settings']
 
-    return make_workflow(subworkflows)
+    return make_workflow(steps, names, environment_settings)
 
 
 def make_workflow(steps: List[str], names: List[str], environment_settings: List[Dict[str, str]]) -> Dict:
@@ -154,16 +152,18 @@ def make_workflow(steps: List[str], names: List[str], environment_settings: List
     workflow = {'stages': []}
     for i, (step, name, sub_environment_settings) in enumerate(zip(steps, names, environment_settings)):
         # Validate the environment settings.
-        invalid_environment_settings = set(sub_environment_settings.keys()).difference(set(catalogue.get_environment_settings(step, name)))
+        invalid_environment_settings = set(sub_environment_settings.keys()).difference(
+            set(catalogue.get_environment_settings(step, name)))
         if len(invalid_environment_settings) > 0:
-            raise ValueError(f'Environment settings for subworkflow {name} from step {step} contains the following invalid parameters (not listed in the associated description.yml): {invalid_environment_settings}')
+            raise ValueError(
+                f'Environment settings for subworkflow {name} from step {step} contains the following invalid parameters (not listed in the associated description.yml): {invalid_environment_settings}')
 
         # Build the image if necessary.
         build_subworkflow(step, name, sub_environment_settings)
 
         # Create parameters dict from inputs + interface.
         subworkflow = make_subworkflow(
-            step, name, sub_environment_settings, toplevel_path)
+            step, name, sub_environment_settings)
         description = utils.get_subworkflow_description(step, name)
         inputs = catalogue.get_missing_inputs(step, name, {})
         parameters = {k: {'step': 'init', 'output': k}
